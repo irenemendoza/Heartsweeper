@@ -24,7 +24,7 @@ class Tablero {
         this.setCSSTemplate();
         this.paintBoxes();
         this.minesAround();
-        this.addEventListener();
+        this.addEventListeners();
         resetBtn.textContent = "Reset";
         resetBtn.dataset.id = "resetBtn";
         contenedor.appendChild(resetBtn);
@@ -107,7 +107,6 @@ class Tablero {
                     }
                 }
                 box.minesAround = minesCounter;
-                box.element.textContent = minesCounter > 0 ? minesCounter : "";
             }
         }
     }
@@ -125,31 +124,60 @@ class Tablero {
         })  
     }
 
-    checkBox() {
+    /*checkBox() {
         if (this.box.isMine){
             this.checkedIsMine();
         }
         return;
-    }
+    }*/
 
-   checkedIsMine() {
+    openMines() {
         this.boxes.forEach((box) => {
                 if (box.isMine) {
-                newBoxDiv.style.backgroundImage = `url(${heartImg})`;
-                newBoxDiv.style.backgroundSize = "cover";
-                newBoxDiv.style.backgroundRepeat = "no-repeat";
-                newBoxDiv.style.backgroundPosition = "center";
-                } else if (box.minesAround > 0) {
-                    box.element.textContent = box.minesAround;
-                    } 
+                box.element.style.backgroundImage = `url(${heartImg})`;
+                box.element.style.backgroundSize = "cover";
+                box.element.style.backgroundRepeat = "no-repeat";
+                box.element.style.backgroundPosition = "center";
+                }
             }
-        )
-        
+        )  
     }
 
-    addEventListener() {
-        let box = document.getElementsByClassName("box");
-        console.log(box);
+    revealEmptyBoxes(box) {
+        box.element.classList.add("open");
+        box.element.style.backgroundColor = "purple";
+        for (let x = -1; x <= 1; x++){
+            for (let y = -1; y <= 1; y++) {
+                if (x === 0 && y === 0) continue;
+                let vecino = this.getBox(box.row + x, box.col + y);
+                if (!vecino || vecino.element.classList.contains("open")) continue;
+                vecino.element.classList.add("open");
+                vecino.element.style.backgroundColor = "purple";
+                if (vecino.isMine) continue;
+                if (vecino.minesAround > 0){
+                    vecino.element.textContent = vecino.minesAround
+                } else if (vecino.minesAround === 0) {
+                    this.revealEmptyBoxes(vecino);
+                }
+            }
+        }
+    }
+
+    addEventListeners() {
+        this.boxes.forEach((box) => {
+            box.element.addEventListener("click", () => {
+                if (box.isMine) {
+                    this.openMines();
+                    alert("¡Has perdido!");
+                } else if (box.minesAround > 0) {
+                    box.element.textContent = box.minesAround;
+                    box.element.classList.add("open");
+                } else if (box.minesAround === 0) {
+                    box.element.style.backgroundColor = "purple";
+                    this.revealEmptyBoxes(box);
+                }
+            })
+        })
     }
 
     reset() {
