@@ -145,14 +145,14 @@ class Tablero {
 
     revealEmptyBoxes(box) {
         box.element.classList.add("open");
-        box.element.style.backgroundColor = "purple";
+        box.element.style.backgroundColor = "lightyellow";
         for (let x = -1; x <= 1; x++){
             for (let y = -1; y <= 1; y++) {
                 if (x === 0 && y === 0) continue;
                 let vecino = this.getBox(box.row + x, box.col + y);
                 if (!vecino || vecino.element.classList.contains("open")) continue;
                 vecino.element.classList.add("open");
-                vecino.element.style.backgroundColor = "purple";
+                vecino.element.style.backgroundColor = "lightyellow";
                 if (vecino.isMine) continue;
                 if (vecino.minesAround > 0){
                     vecino.element.textContent = vecino.minesAround
@@ -170,11 +170,20 @@ class Tablero {
                     this.openMines();
                     alert("¡Has perdido!");
                 } else if (box.minesAround > 0) {
+                    box.element.style.backgroundColor = "lightyellow";
                     box.element.textContent = box.minesAround;
                     box.element.classList.add("open");
                 } else if (box.minesAround === 0) {
-                    box.element.style.backgroundColor = "purple";
+                    box.element.style.backgroundColor = "lightyellow";
                     this.revealEmptyBoxes(box);
+                }
+            })
+            box.element.addEventListener("contextmenu", (e) => {
+                e.preventDefault();
+                if (!box.element.classList.contains("open")) {
+                    box.element.style.backgroundImage = 'url("../img/redFlag.png")';
+                    box.element.style.backgroundSize = "cover";
+                    box.element.style.backgroundPosition = "center"
                 }
             })
         })
