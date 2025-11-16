@@ -1,29 +1,35 @@
 import Box from "./Box";
 import "../style.scss";
-import Minas from "./Minas";
+import Hearts from "./Hearts";
 import heartImg from "../img/heart.png";
+import Timer from "./Timer";
 
 
 
-class Tablero {
+
+class Game {
     rows;
     cols;
     boxes;
-    numeroDeMinas;
     dificultad;
+    numberOfHearts;
+    timer;
+    isTimerStarted = false;
+
 
     constructor(rows, cols, dificultad){
         this.rows = rows;
         this.cols = cols;
         this.dificultad = dificultad;
         this.boxes = [];
+        this.numberOfHearts;
         const tablero = document.getElementById("tablero");
         const contenedor = document.getElementById("contenedor");
         const resetBtn = document.createElement("button");
         this.createBoxes();
         this.setCSSTemplate();
         this.paintBoxes();
-        this.minesAround();
+        this.heartsAround();
         this.addEventListeners();
         resetBtn.textContent = "Reset";
         resetBtn.dataset.id = "resetBtn";
@@ -54,8 +60,8 @@ class Tablero {
                 return;
             }
             
-            //localStorage.setItem("rows", rows);
-            //localStorage.setItem("cols", cols);
+            localStorage.setItem("rows", rows);
+            localStorage.setItem("cols", cols);
         }
         
         return {
@@ -77,8 +83,9 @@ class Tablero {
                     this.boxes.push(box);              
             }
         }
-        let minas = new Minas(this.rows, this.cols, this.boxes, this.dificultad);  
-        minas.colocarMinas();
+        let hearts = new Hearts(this.rows, this.cols, this.boxes, this.dificultad);  
+        this.numberOfHearts = hearts.numberOfHearts();
+        hearts.placeHearts();
         // this.boxesToLocalStorage();
     }
 
@@ -93,20 +100,20 @@ class Tablero {
         return this.boxes.find((box) => (box.row === rows && box.col === cols)) || null;
     }
 
-    minesAround() {
+    heartsAround() {
         for (let box of this.boxes) {
-            if (!box.isMine) {
-                let minesCounter = 0;
+            if (!box.isHeart) {
+                let heartsCounter = 0;
                 for (let x = -1; x <= 1; x++) {
                     for (let y = -1; y <= 1; y++) {
                         if (x === 0 && y === 0) continue;
                         let vecino = this.getBox(box.row + x,box.col + y);
-                        if (vecino && vecino.isMine) {
-                            minesCounter += 1;
+                        if (vecino && vecino.isHeart) {
+                            heartsCounter += 1;
                         }
                     }
                 }
-                box.minesAround = minesCounter;
+                box.heartsAround = heartsCounter;
             }
         }
     }
@@ -124,16 +131,11 @@ class Tablero {
         })  
     }
 
-    /*checkBox() {
-        if (this.box.isMine){
-            this.checkedIsMine();
-        }
-        return;
-    }*/
+    
 
-    openMines() {
+    openHearts() {
         this.boxes.forEach((box) => {
-                if (box.isMine) {
+                if (box.isHeart) {
                 box.element.style.backgroundImage = `url(${heartImg})`;
                 box.element.style.backgroundSize = "cover";
                 box.element.style.backgroundRepeat = "no-repeat";
@@ -153,10 +155,10 @@ class Tablero {
                 if (!vecino || vecino.element.classList.contains("open")) continue;
                 vecino.element.classList.add("open");
                 vecino.element.style.backgroundColor = "lightyellow";
-                if (vecino.isMine) continue;
-                if (vecino.minesAround > 0){
-                    vecino.element.textContent = vecino.minesAround
-                } else if (vecino.minesAround === 0) {
+                if (vecino.isHeart) continue;
+                if (vecino.heartsAround > 0){
+                    vecino.element.textContent = vecino.heartsAround
+                } else if (vecino.heartsAround === 0) {
                     this.revealEmptyBoxes(vecino);
                 }
             }
@@ -166,17 +168,23 @@ class Tablero {
     addEventListeners() {
         this.boxes.forEach((box) => {
             box.element.addEventListener("click", () => {
-                if (box.isMine) {
-                    this.openMines();
+                if (!this.isTimerStarted) {
+                    this.isTimerStarted = true;
+                    this.initTimer();
+                }
+                if (box.isHeart) {
+                    this.openHearts();
                     alert("¡Has perdido!");
-                } else if (box.minesAround > 0) {
+                } else if (box.heartsAround > 0) {
                     box.element.style.backgroundColor = "lightyellow";
-                    box.element.textContent = box.minesAround;
+                    box.element.textContent = box.heartsAround;
                     box.element.classList.add("open");
-                } else if (box.minesAround === 0) {
+                } else if (box.heartsAround === 0) {
                     box.element.style.backgroundColor = "lightyellow";
+                    box.element.classList.add("open");
                     this.revealEmptyBoxes(box);
                 }
+                this.checkwin();
             })
             box.element.addEventListener("contextmenu", (e) => {
                 e.preventDefault();
@@ -189,10 +197,47 @@ class Tablero {
         })
     }
 
+    checkwin() {
+        let numberOfNoHearts = (this.rows * this.cols) - this.numberOfHearts;
+        let openBoxes = this.boxes.filter((box) => box.element.classList.contains("open")).length;
+        if (numberOfNoHearts === openBoxes) {
+            alert("¡Has ganado!")
+        }
+        
+    }
+
+    initTimer() {
+        let timerContainer = document.createElement("h2");
+        timerContainer.setAttribute("id", "timerContainer");
+        timerContainer.innerHTML = '<span id=timer>00:00:00</span>';
+        let boxHeader = document.getElementById("tablero");
+        boxHeader.appendChild(timerContainer);
+        if (!this.timer) {
+            this.timer = new Timer();
+        }
+        this.timer.start();
+    }
+
+    saveState() {
+        let state = {
+            boxes: this.boxes.map((box) => ({
+                row: box.row,
+                col: box.col,
+                inMine: box.isHeart,
+                isOpen: box.element.classList.contains("open"),
+                hasFlag: box.element.style.backgroundImage.includes("redFlag.png"),
+                heartsAround: box.heartsAround
+            })),
+            numberOfHearts: this.numberOfHearts
+        }
+
+        localStorage.setItem("GameState", JSON.stringify(state));
+    }
+
     reset() {
         localStorage.clear()
     }
 }
+        
 
-
-export default Tablero;
+export default Game;

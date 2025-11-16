@@ -1,10 +1,10 @@
 import "./style.scss";
 
 
-import Tablero from './js/Tablero';
+import Game from './js/Game';
 
 
 
-let data = Tablero.getRowsCols();
-let dificultad = Tablero.dificultad();
-let juego = new Tablero(data.rows, data.cols, dificultad);
+let data = Game.getRowsCols();
+let dificultad = Game.dificultad();
+let juego = new Game(data.rows, data.cols, dificultad);

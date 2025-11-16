@@ -1,7 +1,7 @@
 
-import Tablero from './Tablero';
+import Game from './Game';
 
-class Minas {
+class Hearts {
     rows;
     cols;
     boxes;
@@ -23,32 +23,32 @@ class Minas {
 }
 
 
-    cantidadMinas() {
+    numberOfHearts() {
         let porcentaje;
         if (this.dificultad === "1") porcentaje = 0.10;
             else if (this.dificultad === "2") porcentaje = 0.14;
             else porcentaje = 0.18;
-        const numeroDeMinas = Math.floor(this.rows * this.cols * porcentaje);
-        return numeroDeMinas;
+        const numberOfHearts = Math.floor(this.rows * this.cols * porcentaje);
+        return numberOfHearts;
     }
 
-    colocarMinas() {
-    const numeroDeMinas = this.cantidadMinas();
+    placeHearts() {
+    const numberOfHearts = this.numberOfHearts();
     const totalBoxes = this.boxes.length;
 
     // Creamos un Set con índices aleatorios únicos
-    const minasSet = new Set();
-    while (minasSet.size < numeroDeMinas) {
+    const heartsSet = new Set();
+    while (heartsSet.size < numberOfHearts) {
         const randomIndex = Math.floor(Math.random() * totalBoxes);
-        minasSet.add(randomIndex);
+        heartsSet.add(randomIndex);
     }
 
     // Asignamos minas según esos índices
-    minasSet.forEach(index => {
-        this.boxes[index].isMine = true;
+    heartsSet.forEach(index => {
+        this.boxes[index].isHeart = true;
     });
 }
 }
 
-export default Minas;
+export default Hearts;
 
