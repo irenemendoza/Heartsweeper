@@ -31,6 +31,13 @@ class Timer {
             this.display.textContent = "00:00:00";
         }
     }
+    
+    timeToMs(timeString){
+        const [h,m,s] = timeString.split(':').map(Number);
+        return ((h*3600 + m*60 + s)*1000);
+    }
+
+    
 }
 
 export default Timer;

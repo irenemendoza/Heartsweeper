@@ -3,7 +3,7 @@ import "../style.scss";
 import Hearts from "./Hearts";
 import heartImg from "../img/heart.png";
 import Timer from "./Timer";
-
+import { saveScore, getTopScores } from './supabaseClient.js';
 
 
 
@@ -25,16 +25,27 @@ class Game {
         this.numberOfHearts;
         const tablero = document.getElementById("tablero");
         const contenedor = document.getElementById("contenedor");
+        const opciones = document.createElement("div");
+        opciones.id = "opciones";
         const resetBtn = document.createElement("button");
+        const newGameBtn = document.createElement("button");
         this.createBoxes();
         this.setCSSTemplate();
         this.paintBoxes();
         this.heartsAround();
         this.addEventListeners();
         resetBtn.textContent = "Reset";
-        resetBtn.dataset.id = "resetBtn";
-        contenedor.appendChild(resetBtn);
-        resetBtn.addEventListener("click", this.reset);
+        resetBtn.id = "resetBtn";
+        resetBtn.classList = "btn";
+        newGameBtn.textContent = "New Game";
+        newGameBtn.id = "newGameBtn";
+        newGameBtn.classList = "btn";
+        contenedor.appendChild(opciones);
+        opciones.appendChild(resetBtn);
+        opciones.appendChild(newGameBtn);
+        resetBtn.addEventListener("click", () => this.reset());
+        newGameBtn.addEventListener("click", () => this.newGame());
+        this.loadAndShowLeaderboard();
     }
 
     static getRowsCols() {
@@ -48,13 +59,11 @@ class Game {
             if (dimension === "1") {
                 rows = 8;
                 cols = 8;
-                console.log("Has elegido 8x8");
             } else if (
                 dimension === "2"
             ) {
                 rows = 16;
                 cols = 16;
-                console.log("Has elegido 16x16");
             } else {
                 alert("Hay que elegir una de las dos opciones.");
                 return;
@@ -71,8 +80,21 @@ class Game {
     }
 
     static dificultad() {
-        const dificultad = prompt("Dificultad: 1.Fácil  2.Medio  3.Difícil");
-        return dificultad;
+        while (true) {
+            let dificultad = prompt("Dificultad: 1.Fácil  2.Medio  3.Difícil");
+            if (dificultad === null) {
+                alert("Debe elegir una dificultad para iniciar el juego.");
+                continue;
+            }
+
+            dificultad = dificultad.trim();
+            if (dificultad === "1" || dificultad === "2" || dificultad === "3") {
+                return dificultad;
+            }
+
+            alert("Hay que elegir un nivel de dificultad válido: 1, 2 o 3.");
+        }
+        
     }
 
     createBoxes() {
@@ -135,35 +157,47 @@ class Game {
 
     openHearts() {
         this.boxes.forEach((box) => {
-                if (box.isHeart) {
+            if (box.isHeart) {
                 box.element.style.backgroundImage = `url(${heartImg})`;
                 box.element.style.backgroundSize = "cover";
                 box.element.style.backgroundRepeat = "no-repeat";
                 box.element.style.backgroundPosition = "center";
-                }
             }
-        )  
+        })  
+    }
+
+    openBox(box) {
+        if (!box || box.element.classList.contains("open")) return;
+        box.element.classList.add("open");
+        box.element.style.setProperty("background-color", "lemonchiffon", "important");
+        box.element.style.setProperty("border", "1px solid black", "important");
+        if (box.heartsAround > 0) {
+            box.element.style.setProperty("color", "black", "important");
+            box.element.textContent = box.heartsAround;
+        }
     }
 
     revealEmptyBoxes(box) {
-        box.element.classList.add("open");
-        box.element.style.backgroundColor = "lightyellow";
-        for (let x = -1; x <= 1; x++){
+        if (!box || box.element.classList.contains("open")) return;
+        
+        this.openBox(box);
+        
+        if (box.heartsAround > 0) {
+            return;
+        }
+        
+   
+        for (let x = -1; x <= 1; x++) {
             for (let y = -1; y <= 1; y++) {
                 if (x === 0 && y === 0) continue;
                 let vecino = this.getBox(box.row + x, box.col + y);
-                if (!vecino || vecino.element.classList.contains("open")) continue;
-                vecino.element.classList.add("open");
-                vecino.element.style.backgroundColor = "lightyellow";
-                if (vecino.isHeart) continue;
-                if (vecino.heartsAround > 0){
-                    vecino.element.textContent = vecino.heartsAround
-                } else if (vecino.heartsAround === 0) {
+                if (vecino && !vecino.element.classList.contains("open") && !vecino.isHeart) {
                     this.revealEmptyBoxes(vecino);
                 }
             }
         }
     }
+    
 
     addEventListeners() {
         this.boxes.forEach((box) => {
@@ -174,48 +208,146 @@ class Game {
                 }
                 if (box.isHeart) {
                     this.openHearts();
-                    alert("¡Has perdido!");
+                    setTimeout(() => {
+                        alert("¡Has perdido!");
+                        this.stopTimer();
+                    }, 500);
+                    
                 } else if (box.heartsAround > 0) {
-                    box.element.style.backgroundColor = "lightyellow";
-                    box.element.textContent = box.heartsAround;
-                    box.element.classList.add("open");
+                    this.openBox(box);
+                    this.checkwin();
                 } else if (box.heartsAround === 0) {
-                    box.element.style.backgroundColor = "lightyellow";
-                    box.element.classList.add("open");
                     this.revealEmptyBoxes(box);
                 }
-                this.checkwin();
+                
             })
             box.element.addEventListener("contextmenu", (e) => {
                 e.preventDefault();
-                if (!box.element.classList.contains("open")) {
-                    box.element.style.backgroundImage = 'url("../img/redFlag.png")';
-                    box.element.style.backgroundSize = "cover";
-                    box.element.style.backgroundPosition = "center"
-                }
             })
         })
     }
 
-    checkwin() {
+    async checkwin() {
         let numberOfNoHearts = (this.rows * this.cols) - this.numberOfHearts;
         let openBoxes = this.boxes.filter((box) => box.element.classList.contains("open")).length;
         if (numberOfNoHearts === openBoxes) {
-            alert("¡Has ganado!")
+            this.stopTimer();       // pausamos el cronómetro
+            this.animateHearts();   // arranca la animación
+            let time = document.getElementById("timer");
+            
+            setTimeout(async () => {
+                const time = document.getElementById("timer");
+                const tiempoJuego = this.timer.timeToMs(time.textContent);
+                
+                const playerName = prompt("¡Ganaste! Dinos tu nombre") || "Anónimo"
+                await saveScore({ 
+                    rows: this.rows, 
+                    cols: this.cols, 
+                    difficulty: this.dificultad, 
+                    playerName,
+                    time_ms: tiempoJuego
+                })
+                .then((saved) => console.log("saveScore ok", saved))
+                .catch((err) => console.error("saveScore error", err));
+
+                const top = await getTopScores({ 
+                    rows: this.rows, 
+                    cols: this.cols, 
+                    difficulty: this.dificultad
+                });
+
+                this.showLeaderboard(top);
+
+                alert(`¡Has ganado! Tu tiempo: ${time.textContent}`);
+            }, 1800);            
         }
         
     }
 
-    initTimer() {
-        let timerContainer = document.createElement("h2");
-        timerContainer.setAttribute("id", "timerContainer");
-        timerContainer.innerHTML = '<span id=timer>00:00:00</span>';
-        let boxHeader = document.getElementById("tablero");
-        boxHeader.appendChild(timerContainer);
-        if (!this.timer) {
-            this.timer = new Timer();
+    async loadAndShowLeaderboard() {
+        const top = await getTopScores({
+            rows: this.rows,
+            cols: this.cols,
+            difficulty: this.dificultad
+        });
+        this.showLeaderboard(top);
+    }
+
+    showLeaderboard(entries) {
+        const tableBody = document.getElementById('leaderboardBody');
+        const tableName = document.getElementById('leaderboardName');
+        if (this.dificultad === "1"){
+            tableName.innerHTML = `${this.rows}x${this.cols} - FÁCIL`;
         }
+        if (this.dificultad === "2"){
+            tableName.innerHTML = `${this.rows}x${this.cols} - INTERMEDIO`;
+        }
+        if (this.dificultad === "3"){
+            tableName.innerHTML = `${this.rows}x${this.cols} - DIFÍCIL`;
+        }
+        tableBody.innerHTML = '';
+        entries.forEach((row, idx) => {
+            const fecha = new Date(row.created_at).toLocaleString('es-ES', {
+                day: '2-digit', month: '2-digit', year: 'numeric',
+                hour: '2-digit', minute: '2-digit'
+            });
+            const tr = document.createElement('tr');
+            tr.innerHTML = `<td>${idx + 1}</td><td>${row.player_name}</td><td>${this.formatTimeMs(row.time_ms)}</td><td>${fecha}</td>`;
+            tableBody.appendChild(tr);
+        });
+    }
+
+    animateHearts() {
+        const container = document.createElement("div");
+        container.className = "hearts-container";
+        document.body.appendChild(container);
+
+        const heartEmoji = "❤️";
+        const numberOfHearts = 30;
+
+        for (let i = 0; i < numberOfHearts; i++) {
+            const heart = document.createElement("div");
+            heart.className = "falling-heart";
+            heart.textContent = heartEmoji;
+            heart.style.left = Math.random() * 100 + "%";
+            heart.style.animationDelay = Math.random() * 0.5 + "s";
+            container.appendChild(heart);
+        }
+
+        // Eliminar el contenedor después de la animación
+        setTimeout(() => {
+            container.remove();
+        }, 2500);
+    }
+
+    initTimer() {
+        let timerContainer = document.getElementById("timerContainer");
+        if (!timerContainer) {
+            timerContainer = document.createElement("h2");
+            timerContainer.setAttribute("id", "timerContainer");
+            timerContainer.innerHTML = '<span id=timer>00:00:00</span>';
+            let contenedor = document.getElementById("contenedor");
+            contenedor.appendChild(timerContainer);
+        } else {
+            const timerSpan = document.getElementById("timer");
+            if (timerSpan) {
+                timerSpan.textContent = "00:00:00";
+            }
+        }
+        this.timer = new Timer();
         this.timer.start();
+    }
+
+    stopTimer(){
+        this.timer.stop();
+    }
+
+    formatTimeMs(ms) {
+        const totalSeconds = Math.floor(ms / 1000);
+        const minutes = Math.floor(totalSeconds / 60).toString().padStart(2, '0');
+        const seconds = (totalSeconds % 60).toString().padStart(2, '0');
+        const centiseconds = Math.floor((ms % 1000) / 10).toString().padStart(2, '0');
+        return `${minutes}:${seconds}.${centiseconds}`;
     }
 
     saveState() {
@@ -225,7 +357,6 @@ class Game {
                 col: box.col,
                 inMine: box.isHeart,
                 isOpen: box.element.classList.contains("open"),
-                hasFlag: box.element.style.backgroundImage.includes("redFlag.png"),
                 heartsAround: box.heartsAround
             })),
             numberOfHearts: this.numberOfHearts
@@ -235,9 +366,54 @@ class Game {
     }
 
     reset() {
-        localStorage.clear()
+        // Limpiar todas las cajas visualmente
+        this.boxes.forEach((box) => {
+            box.element.classList.remove("open");
+            box.element.style.backgroundColor = "";
+            box.element.style.backgroundImage = "";
+            box.element.textContent = "";
+        });
+
+        // Resetear propiedades de las cajas
+        this.boxes.forEach((box) => {
+            box.isHeart = false;
+            box.heartsAround = 0;
+        });
+
+        // Redistribuir corazones
+        let hearts = new Hearts(this.rows, this.cols, this.boxes, this.dificultad);
+        this.numberOfHearts = hearts.numberOfHearts();
+        hearts.placeHearts();
+
+        // Recalcular heartsAround
+        this.heartsAround();
+
+        // Detener el timer si está corriendo
+        if (this.timer) {
+            this.timer.stop();
+            this.timer = null;
+        }
+
+        // Limpiar el display del timer
+        const timerSpan = document.getElementById("timer");
+        if (timerSpan) {
+            timerSpan.textContent = "00:00:00";
+        }
+
+        // Limpiar localStorage
+        localStorage.clear();
+
+        // Reiniciar el estado del juego
+        this.isTimerStarted = false;
+
+        this.loadAndShowLeaderboard();
     }
+
+    newGame() { 
+        localStorage.clear();
+        location.reload();
+    }
+
 }
-        
 
 export default Game;
