@@ -6,6 +6,8 @@
 
 A Minesweeper-inspired browser game where mines are replaced with hearts. Built with vanilla JavaScript and a modern dark UI.
 
+🌐 **Live demo:** [heartsweeper.irenemendoza.dev](https://heartsweeper.irenemendoza.dev/)
+
 ---
 
 ## ✨ Features
