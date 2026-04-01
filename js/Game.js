@@ -181,7 +181,7 @@ class Game {
     openBox(box) {
         if (!box || box.element.classList.contains("open")) return;
         box.element.classList.add("open");
-        box.element.style.setProperty("background-color", "rgba(255,0,0,0.1)", "important");
+        box.element.style.setProperty("background-color", "rgba(255,0,0,0.2)", "important");
         box.element.style.setProperty("border", "1px solid rgba(255,0,0)", "important");
         if (box.heartsAround > 0) {
             box.element.style.setProperty("color", "rgba(255,0,0)", "important");

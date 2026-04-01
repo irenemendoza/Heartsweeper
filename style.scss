@@ -1,6 +1,5 @@
 @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap');
 
-$blanco: #F8F4EE;
 
 
 * {
@@ -16,7 +15,7 @@ body {
     min-height: 100vh;
     margin: 0;
     padding: 20px;
-    background: $blanco;
+    background: white;
     color: rgba(255,0,0);
 }
 
@@ -46,7 +45,7 @@ h1 {
 
 .box {
     border: 1px solid rgba(255,0,0);
-    background-color: $blanco;
+    background-color: white;
     color: #f0f0f0;
     font-weight: 700;
     font-size: 0.75rem;
