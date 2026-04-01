@@ -1,7 +1,7 @@
-# 💜 Heartsweeper
+# ❤️ Heartsweeper
 
 <p align="center">
-  <img src="./screenshots/screenshot.png" alt="Heartsweeper screenshot" width="600"/>
+  <img src="./screenshots/ss-heartsweeper.png" alt="Heartsweeper screenshot" width="600"/>
 </p>
 
 A Minesweeper-inspired browser game where mines are replaced with hearts. Built with vanilla JavaScript and a modern dark UI.
@@ -27,10 +27,12 @@ A Minesweeper-inspired browser game where mines are replaced with hearts. Built 
 ![Sass](https://img.shields.io/badge/Sass-CC6699?style=flat&logo=sass&logoColor=white)
 ![Supabase](https://img.shields.io/badge/Supabase-3ECF8E?style=flat&logo=supabase&logoColor=white)
 ![JavaScript](https://img.shields.io/badge/JavaScript-F7DF1E?style=flat&logo=javascript&logoColor=black)
+![SweetAlert2](https://img.shields.io/badge/SweetAlert2-ff6b6b?style=flat&logoColor=white)
 
 * **Vite** — dev server and bundler
 * **Sass** — styling
 * **Supabase** — leaderboard persistence (PostgreSQL + REST API)
+* **SweetAlert2** — custom modals replacing native browser `alert` and `prompt`
 
 ---
 
