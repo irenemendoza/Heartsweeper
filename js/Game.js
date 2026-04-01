@@ -1,6 +1,7 @@
 import Box from "./Box";
 import "../style.scss";
 import Hearts from "./Hearts";
+import heartBrokenImg from "../img/Broken_heart.png";
 import heartImg from "../img/heart.png";
 import Timer from "./Timer";
 import { saveScore, getTopScores } from './supabaseClient.js';
@@ -155,6 +156,18 @@ class Game {
 
     
 
+    openBreakHearts() {
+        this.boxes.forEach((box) => {
+            if (box.isHeart) {
+                box.element.style.backgroundImage = `url(${heartBrokenImg})`;
+                box.element.style.backgroundSize = "contain";
+                box.element.style.backgroundRepeat = "no-repeat";
+                box.element.style.backgroundPosition = "center";
+            }
+        })  
+    }
+
+
     openHearts() {
         this.boxes.forEach((box) => {
             if (box.isHeart) {
@@ -169,10 +182,10 @@ class Game {
     openBox(box) {
         if (!box || box.element.classList.contains("open")) return;
         box.element.classList.add("open");
-        box.element.style.setProperty("background-color", "lemonchiffon", "important");
-        box.element.style.setProperty("border", "1px solid black", "important");
+        box.element.style.setProperty("background-color", "rgba(255,0,0,0.1)", "important");
+        box.element.style.setProperty("border", "1px solid rgba(255,0,0)", "important");
         if (box.heartsAround > 0) {
-            box.element.style.setProperty("color", "black", "important");
+            box.element.style.setProperty("color", "rgba(255,0,0)", "important");
             box.element.textContent = box.heartsAround;
         }
     }
@@ -207,7 +220,7 @@ class Game {
                     this.initTimer();
                 }
                 if (box.isHeart) {
-                    this.openHearts();
+                    this.openBreakHearts();
                     setTimeout(() => {
                         alert("¡Has perdido!");
                         this.stopTimer();
@@ -232,6 +245,7 @@ class Game {
         let openBoxes = this.boxes.filter((box) => box.element.classList.contains("open")).length;
         if (numberOfNoHearts === openBoxes) {
             this.stopTimer();       // pausamos el cronómetro
+            this.openHearts();      // se descubren los corazones
             this.animateHearts();   // arranca la animación
             let time = document.getElementById("timer");
             

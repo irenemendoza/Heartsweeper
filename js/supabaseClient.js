@@ -11,7 +11,6 @@ export async function saveScore({rows, cols, difficulty, playerName, time_ms}) {
         .select()
         .single();
     if (error) throw error;
-    console.log("Datos guardados");
     return data;
 }
 

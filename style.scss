@@ -1,5 +1,8 @@
 @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap');
 
+$blanco: #F8F4EE;
+
+
 * {
     box-sizing: border-box;
 }
@@ -13,8 +16,8 @@ body {
     min-height: 100vh;
     margin: 0;
     padding: 20px;
-    background: #1a1a1a;
-    color: #f0f0f0;
+    background: $blanco;
+    color: rgba(255,0,0);
 }
 
 h1 {
@@ -22,7 +25,7 @@ h1 {
     font-weight: 700;
     letter-spacing: 2px;
     margin-bottom: 16px;
-    color: lemonchiffon;
+    color: rgba(255,0,0);
 }
 
 #contenedor {
@@ -33,17 +36,17 @@ h1 {
 }
 
 #tablero {
-    border: 2px solid rgba(255, 250, 205, 0.3);
+    border: 2px solid rgba(255,0,0);
     border-radius: 8px;
     margin: 0 auto;
     width: fit-content;
-    box-shadow: 0 0 24px rgba(255, 250, 205, 0.15), inset 0 0 12px rgba(0,0,0,0.4);
+    box-shadow: 0 0 24px rgba(255,0,0,0.2), inset 0 0 12px rgba(255,0,0,0.2);
     overflow: hidden;
 }
 
 .box {
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    background-color: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255,0,0);
+    background-color: rgba(255,0,0,0.1);
     color: #f0f0f0;
     font-weight: 700;
     font-size: 0.75rem;
@@ -54,7 +57,7 @@ h1 {
     justify-content: center;
 
     &:hover {
-        background-color: rgba(255, 250, 205, 0.15);
+        background-color: rgba(255,0,0, 0.5);
     }
 }
 
@@ -69,14 +72,14 @@ h1 {
     padding: 8px 0;
     border: none;
     border-radius: 20px;
-    background: lemonchiffon;
-    color: #333;
+    background: rgba(255,0,0, 0.1);
+    color: rgba(255,0,0);
     font-family: 'Nunito', sans-serif;
     font-weight: 700;
     font-size: 0.9rem;
     letter-spacing: 0.5px;
     cursor: pointer;
-    box-shadow: 0 4px 14px rgba(255, 250, 205, 0.2);
+    box-shadow: 0 0 24px rgba(255,0,0, 0.2);
     transition: transform 0.15s ease, box-shadow 0.15s ease;
 
     &:hover {
@@ -92,7 +95,7 @@ h1 {
 #timerContainer {
     font-size: 1.4rem;
     font-weight: 700;
-    color: lemonchiffon;
+    color: rgba(255,0,0);
     letter-spacing: 2px;
     margin: 0;
 }
@@ -105,7 +108,7 @@ h1 {
 #leaderboardName {
     font-size: 1rem;
     font-weight: 600;
-    color: #aaa;
+    color: rgba(255,0,0,0.8);
     letter-spacing: 1px;
     text-transform: uppercase;
     margin-bottom: 10px;
@@ -115,14 +118,14 @@ table {
     border-collapse: collapse;
     border-radius: 12px;
     overflow: hidden;
-    background: rgba(255, 255, 255, 0.05);
+    background: rgba(255,0,0,0.05);
     backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+    border: 1px solid rgba(255,0,0);
+    box-shadow: 0 4px 20px rgba(255,0,0.02);
 
     th {
-        background: rgba(255, 250, 205, 0.15);
-        color: lemonchiffon;
+        background: rgba(255,0,0,0.15);
+        color: white;
         font-weight: 700;
         font-size: 0.8rem;
         letter-spacing: 1px;
@@ -132,8 +135,8 @@ table {
 
     td {
         padding: 8px 20px;
-        color: #f0f0f0;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        color: $blanco;
+        border-bottom: 1px solid rgba(255,0,0,0.08);
         font-size: 0.9rem;
     }
 
@@ -142,11 +145,11 @@ table {
     }
 
     tbody tr:hover td {
-        background: rgba(255, 250, 205, 0.05);
+        background: rgba(255,0,0, 0.05);
     }
 
     tbody tr:first-child td {
-        color: lemonchiffon;
+        color: rgba(255,0,0);
         font-weight: 700;
     }
 }
