@@ -5,6 +5,14 @@ import heartBrokenImg from "../img/Broken_heart.png";
 import heartImg from "../img/heart.png";
 import Timer from "./Timer";
 import { saveScore, getTopScores } from './supabaseClient.js';
+import Swal from 'sweetalert2';
+
+const swalOpts = {
+    background: '#F8F4EE',
+    color: 'rgba(255,0,0)',
+    confirmButtonColor: 'rgba(200,0,0,0.85)',
+    cancelButtonColor: 'rgba(200,0,0,0.3)',
+};
 
 
 
@@ -49,53 +57,44 @@ class Game {
         this.loadAndShowLeaderboard();
     }
 
-    static getRowsCols() {
-        let rows;
-        let cols;
+    static async getRowsCols() {
         if (localStorage.getItem("rows") !== null && localStorage.getItem("cols") !== null) {
-            rows = parseInt(localStorage.getItem("rows"));
-            cols = parseInt(localStorage.getItem("cols"));
-        } else {
-            let dimension = prompt("Elige si prefieres jugar en tablero: 1. 8x8 o 2. 16x16");
-            if (dimension === "1") {
-                rows = 8;
-                cols = 8;
-            } else if (
-                dimension === "2"
-            ) {
-                rows = 16;
-                cols = 16;
-            } else {
-                alert("Hay que elegir una de las dos opciones.");
-                return;
-            }
-            
-            localStorage.setItem("rows", rows);
-            localStorage.setItem("cols", cols);
+            return {
+                rows: parseInt(localStorage.getItem("rows")),
+                cols: parseInt(localStorage.getItem("cols"))
+            };
         }
-        
-        return {
-            "rows": rows,
-            "cols": cols
-        }
+
+        const { value } = await Swal.fire({
+            ...swalOpts,
+            title: '¿Qué tablero prefieres?',
+            input: 'radio',
+            inputOptions: { '8': '8×8', '16': '16×16' },
+            inputValidator: (v) => !v && 'Debes elegir una opción',
+            confirmButtonText: 'Jugar',
+            allowOutsideClick: false,
+        });
+
+        if (!value) return null;
+
+        const size = parseInt(value);
+        localStorage.setItem("rows", size);
+        localStorage.setItem("cols", size);
+        return { rows: size, cols: size };
     }
 
-    static dificultad() {
-        while (true) {
-            let dificultad = prompt("Dificultad: 1.Fácil  2.Medio  3.Difícil");
-            if (dificultad === null) {
-                alert("Debe elegir una dificultad para iniciar el juego.");
-                continue;
-            }
+    static async dificultad() {
+        const { value } = await Swal.fire({
+            ...swalOpts,
+            title: '¿Nivel de dificultad?',
+            input: 'radio',
+            inputOptions: { '1': 'Fácil', '2': 'Medio', '3': 'Difícil' },
+            inputValidator: (v) => !v && 'Debes elegir una dificultad',
+            confirmButtonText: 'Jugar',
+            allowOutsideClick: false,
+        });
 
-            dificultad = dificultad.trim();
-            if (dificultad === "1" || dificultad === "2" || dificultad === "3") {
-                return dificultad;
-            }
-
-            alert("Hay que elegir un nivel de dificultad válido: 1, 2 o 3.");
-        }
-        
+        return value || null;
     }
 
     createBoxes() {
@@ -221,9 +220,13 @@ class Game {
                 }
                 if (box.isHeart) {
                     this.openBreakHearts();
+                    this.stopTimer();
                     setTimeout(() => {
-                        alert("¡Has perdido!");
-                        this.stopTimer();
+                        Swal.fire({
+                            ...swalOpts,
+                            title: '💔 ¡Has perdido!',
+                            confirmButtonText: 'Reintentar',
+                        });
                     }, 500);
                     
                 } else if (box.heartsAround > 0) {
@@ -253,26 +256,32 @@ class Game {
                 const time = document.getElementById("timer");
                 const tiempoJuego = this.timer.timeToMs(time.textContent);
                 
-                const playerName = prompt("¡Ganaste! Dinos tu nombre") || "Anónimo"
-                await saveScore({ 
-                    rows: this.rows, 
-                    cols: this.cols, 
-                    difficulty: this.dificultad, 
-                    playerName,
+                const { value: playerName } = await Swal.fire({
+                    ...swalOpts,
+                    title: '🏆 ¡Has ganado!',
+                    text: `Tu tiempo: ${time.textContent}`,
+                    input: 'text',
+                    inputPlaceholder: 'Tu nombre',
+                    confirmButtonText: 'Guardar puntuación',
+                });
+
+                await saveScore({
+                    rows: this.rows,
+                    cols: this.cols,
+                    difficulty: this.dificultad,
+                    playerName: playerName || 'Anónimo',
                     time_ms: tiempoJuego
                 })
                 .then((saved) => console.log("saveScore ok", saved))
                 .catch((err) => console.error("saveScore error", err));
 
-                const top = await getTopScores({ 
-                    rows: this.rows, 
-                    cols: this.cols, 
+                const top = await getTopScores({
+                    rows: this.rows,
+                    cols: this.cols,
                     difficulty: this.dificultad
                 });
 
                 this.showLeaderboard(top);
-
-                alert(`¡Has ganado! Tu tiempo: ${time.textContent}`);
             }, 1800);            
         }
         

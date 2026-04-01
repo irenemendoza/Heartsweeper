@@ -1,10 +1,10 @@
 import "./style.scss";
-
-
 import Game from './js/Game';
 
-
-
-let data = Game.getRowsCols();
-let dificultad = Game.dificultad();
-let juego = new Game(data.rows, data.cols, dificultad);
+const data = await Game.getRowsCols();
+if (data) {
+    const dificultad = await Game.dificultad();
+    if (dificultad) {
+        new Game(data.rows, data.cols, dificultad);
+    }
+}

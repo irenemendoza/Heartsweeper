@@ -46,7 +46,7 @@ h1 {
 
 .box {
     border: 1px solid rgba(255,0,0);
-    background-color: rgba(255,0,0,0.1);
+    background-color: $blanco;
     color: #f0f0f0;
     font-weight: 700;
     font-size: 0.75rem;
@@ -135,7 +135,7 @@ table {
 
     td {
         padding: 8px 20px;
-        color: $blanco;
+        color: rgba(255,0,0,0.8);
         border-bottom: 1px solid rgba(255,0,0,0.08);
         font-size: 0.9rem;
     }
