@@ -16,7 +16,7 @@ A Minesweeper-inspired browser game where mines are replaced with hearts. Built 
 * 🎯 Three difficulty levels: Easy, Medium, Hard
 * 💥 Cascade opening of empty cells
 * ⏱️ In-game timer
-* 🏆 Global leaderboard powered by Supabase
+* 🏆 Global leaderboard powered by Cloudflare D1
 * 💖 Animated falling hearts on winning
 
 ---
@@ -25,13 +25,14 @@ A Minesweeper-inspired browser game where mines are replaced with hearts. Built 
 
 ![Vite](https://img.shields.io/badge/Vite-646CFF?style=flat&logo=vite&logoColor=white)
 ![Sass](https://img.shields.io/badge/Sass-CC6699?style=flat&logo=sass&logoColor=white)
-![Supabase](https://img.shields.io/badge/Supabase-3ECF8E?style=flat&logo=supabase&logoColor=white)
 ![JavaScript](https://img.shields.io/badge/JavaScript-F7DF1E?style=flat&logo=javascript&logoColor=black)
+![Cloudflare Workers](https://img.shields.io/badge/Cloudflare%20Workers-F38020?style=flat&logo=cloudflare&logoColor=white)
 ![SweetAlert2](https://img.shields.io/badge/SweetAlert2-ff6b6b?style=flat&logoColor=white)
 
 * **Vite** — dev server and bundler
 * **Sass** — styling
-* **Supabase** — leaderboard persistence (PostgreSQL + REST API)
+* **Cloudflare Workers** — serverless API handling score reads and writes
+* **Cloudflare D1** — leaderboard persistence (SQLite at the edge)
 * **SweetAlert2** — custom modals replacing native browser `alert` and `prompt`
 
 ---
@@ -41,40 +42,11 @@ A Minesweeper-inspired browser game where mines are replaced with hearts. Built 
 ### Prerequisites
 
 * Node.js
-* A **Supabase** project with a `rankings` table
 
-### Supabase table setup
-
-Run this in the Supabase SQL editor:
-```sql
-CREATE TABLE rankings (
-  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  rows int NOT NULL,
-  cols int NOT NULL,
-  difficulty text NOT NULL,
-  player_name text NOT NULL,
-  time_ms int NOT NULL,
-  created_at timestamptz DEFAULT now()
-);
-
--- Allow anonymous reads and inserts
-CREATE POLICY "Allow anonymous selects" ON public.rankings FOR SELECT TO anon USING (true);
-CREATE POLICY "Allow anonymous inserts" ON public.rankings FOR INSERT TO anon WITH CHECK (true);
-
-ALTER TABLE public.rankings ENABLE ROW LEVEL SECURITY;
-```
 
 ### Installation
 ```bash
 npm install
-```
-
-### Environment variables
-
-Create a `.env` file at the project root:
-```
-VITE_SUPABASE_URL=your_supabase_project_url
-VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
 ```
 
 ### Run in development
@@ -87,6 +59,23 @@ npm run dev
 npm run build
 ```
 
+
+## 🔧 API (Cloudflare Worker)
+
+The backend lives in `heartsweeper-api/` and is deployed as a Cloudflare Worker backed by a D1 database.
+
+### Endpoints
+
+| Method | Path | Description |
+|--------|------|-------------|
+| `POST` | `/api/scores` | Save a score |
+| `GET` | `/api/scores?rows=&cols=&difficulty=` | Get top 5 scores |
+
+### Deploy the Worker
+```bash
+cd heartsweeper-api
+wrangler deploy
+```
 ---
 
 ## 🎮 How to Play
