@@ -234,6 +234,7 @@ class Game {
                     this.checkwin();
                 } else if (box.heartsAround === 0) {
                     this.revealEmptyBoxes(box);
+                    this.checkwin();
                 }
                 
             })

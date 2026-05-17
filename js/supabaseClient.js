@@ -1,28 +1,21 @@
-const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
-const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
+const API_URL = "https://heartsweeper-api.mendozagonzalez-irene.workers.dev";
 
-import { createClient } from '@supabase/supabase-js';
-export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-export async function saveScore({rows, cols, difficulty, playerName, time_ms}) {
-    const {data, error} = await supabase
-        .from('rankings')
-        .insert([{rows, cols, difficulty, player_name: playerName, time_ms}])
-        .select()
-        .single();
-    if (error) throw error;
+export async function saveScore({ rows, cols, difficulty, playerName, time_ms }) {
+    const response = await fetch(`${API_URL}/api/scores`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ rows, cols, difficulty, player_name: playerName, time_ms }),
+    });
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.error);
     return data;
 }
 
-export async function getTopScores({rows, cols, difficulty, limit = 5}) {
-    const { data, error } = await supabase
-        .from('rankings')
-        .select('player_name, time_ms, created_at')
-        .eq('rows', rows)
-        .eq('cols', cols)
-        .eq('difficulty', difficulty)
-        .order('time_ms', { ascending: true})
-        .limit(limit);
-    if (error) throw error;
+export async function getTopScores({ rows, cols, difficulty }) {
+    const response = await fetch(
+        `${API_URL}/api/scores?rows=${rows}&cols=${cols}&difficulty=${difficulty}`
+    );
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.error);
     return data;
 }
